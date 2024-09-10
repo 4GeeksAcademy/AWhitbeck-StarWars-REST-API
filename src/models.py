@@ -15,5 +15,31 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
-            # do not serialize the password, its a security breach
         }
+    
+class People(db.Model):
+    __tablename__ = 'people'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    about = db.Column(db.String(250))
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "about": self.about
+        }
+    
+class Planet(db.Model):
+    __tablename__ = 'planet'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    about = db.Column(db.String(250))
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "about": self.about
+        }
+    

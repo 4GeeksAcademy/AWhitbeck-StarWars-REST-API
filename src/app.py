@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, People, Planet
 #from models import Person
 
 app = Flask(__name__)
@@ -45,7 +45,32 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
-# this only runs if `$ python src/app.py` is executed
+#CREATE NEW PERSON
+@app.route('/person', methods=['POST'])
+def create_person():
+    req_body = request.get_json()
+    person_name = req_body['name']
+    person_about = req_body['about']
+    new_person = People(name=person_name, about=person_about)
+
+    db.session.add(new_person)
+    db.session.commit()
+
+    return jsonify({'message': 'Added a new person to the database'}), 200
+
+#GET ALL PEOPLE
+@app.route('/people', methods=['GET'])
+def get_people():
+    people = People.query.all()
+    serialized_people = []
+    for person in people: 
+        serialized_people.append(person.serialize())
+
+    if len(serialized_people) > 0:
+        return jsonify(serialized_people), 200
+
+    return jsonify({'message': 'No people in database'}), 404
+
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
