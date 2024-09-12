@@ -36,14 +36,29 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/user', methods=['POST'])
+def creat_user():
+    req_body = request.get_json()
+    user_email = req_body['email']
+    user_password = req_body['password']
+    user_active = req_body['is_active']
+    new_user = User(email=user_email, password=user_password, is_active=user_active)
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    db.session.add(new_user)
+    db.session.commit()
 
-    return jsonify(response_body), 200
+    return jsonify({'message': 'Added a new user to the database'}), 200
+
+#GET ALL USERS
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    serialized_users = []
+    for user in users: 
+        serialized_users.append(user.serialize())
+    if len(serialized_users) > 0:
+        return jsonify(serialized_users), 200
+    return jsonify({'Message': 'No users in database'}), 404
 
 #CREATE NEW PERSON
 @app.route('/person', methods=['POST'])
@@ -58,6 +73,27 @@ def create_person():
 
     return jsonify({'message': 'Added a new person to the database'}), 200
 
+#GET SINGLE PERSON
+@app.route('/person/<int:person_id>')
+def get_single_person(person_id):
+    person = People.query.get(person_id)
+    if person:
+        return jsonify(person.serialize()), 200
+    return jsonify({'message': 'Person not found'}), 404
+
+#CREATE NEW PLANET
+@app.route('/planet', methods=['POST'])
+def create_planet():
+    req_body = request.get_json()
+    planet_name = req_body['name']
+    planet_about = req_body['about']
+    new_planet = Planet(name=planet_name, about=planet_about)
+
+    db.session.add(new_planet)
+    db.session.commit()
+
+    return jsonify({'message': 'Added a new planet to the database'}), 200
+
 #GET ALL PEOPLE
 @app.route('/people', methods=['GET'])
 def get_people():
@@ -70,6 +106,22 @@ def get_people():
         return jsonify(serialized_people), 200
 
     return jsonify({'message': 'No people in database'}), 404
+
+#GET ALL PLANETS
+@app.route('/planet', methods=['GET'])
+def get_planets():
+    planets = Planet.query.all()
+    serialized_planet = []
+    for planet in planets: 
+        serialized_planet.append(planet.serialize())
+
+    if len(serialized_planet) > 0:
+        return jsonify(serialized_planet), 200
+
+    return jsonify({'message': 'No planets in database'}), 404
+
+
+
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
