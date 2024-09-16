@@ -36,6 +36,8 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+# user
+# POST A USER
 @app.route('/user', methods=['POST'])
 def creat_user():
     req_body = request.get_json()
@@ -60,6 +62,7 @@ def get_users():
         return jsonify(serialized_users), 200
     return jsonify({'Message': 'No users in database'}), 404
 
+# people
 #CREATE NEW PERSON
 @app.route('/person', methods=['POST'])
 def create_person():
@@ -73,14 +76,20 @@ def create_person():
 
     return jsonify({'message': 'Added a new person to the database'}), 200
 
-#GET SINGLE PERSON
-@app.route('/person/<int:person_id>')
+#GET PERSON
+@app.route('/person/<int:person_id>', methods=['GET'])
 def get_single_person(person_id):
     person = People.query.get(person_id)
     if person:
         return jsonify(person.serialize()), 200
     return jsonify({'message': 'Person not found'}), 404
 
+#GET ALL PEOPLE
+@app.route('/people', methods=['GET'])
+def get_people():
+
+
+# planet
 #CREATE NEW PLANET
 @app.route('/planet', methods=['POST'])
 def create_planet():
@@ -94,18 +103,19 @@ def create_planet():
 
     return jsonify({'message': 'Added a new planet to the database'}), 200
 
-#GET ALL PEOPLE
-@app.route('/people', methods=['GET'])
-def get_people():
-    people = People.query.all()
-    serialized_people = []
-    for person in people: 
-        serialized_people.append(person.serialize())
+#GET PERSON
+@app.route('/planet/<int:planet_id>', methods=['GET'])
+def get_single_planet(planet_id):
+    planets = Planet.query.all()
+    serialized_planet = []
+    for planet in planets: 
+        serialized_planet.append(planet.serialize())
 
-    if len(serialized_people) > 0:
-        return jsonify(serialized_people), 200
+    if len(serialized_planet) > 0:
+        return jsonify(serialized_planet), 200
 
-    return jsonify({'message': 'No people in database'}), 404
+    return jsonify({'message': 'No planets in database'}), 404
+
 
 #GET ALL PLANETS
 @app.route('/planet', methods=['GET'])
@@ -121,6 +131,42 @@ def get_planets():
     return jsonify({'message': 'No planets in database'}), 404
 
 
+# favorites
+@app.route('/favorite/person/<int:person_id>', methods=['POST'])
+def create_favorite_person(person_id):
+    user_id = request.arg.get('user_id')
+    person = People.query.get(person_id)
+    favorite = Favorites(user_id = user_id, people_id = person.id)
+    db.session.add(favorite)
+    db.session.commit()
+
+# delete favorite
+@app.route('/favorite/person/<int:person_id>', methods=['DELETE'])
+def delete_favorite_person(person_id):
+    user_id = request.arg.get('user_id')
+    favorite = Favorites.query.filter_by(user_id=user_id, people_id=people_id).first()
+    db.session.delete(favorite)
+    db.session.commit()
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def create_favorite_planet(planet_id):
+    user_id = request.arg.get('user_id')
+    planet = Planet.query.get(planet_id)
+    favorite = Favorites(user_id = user_id, planet_id = planet.id)
+    db.session.add(favorite)
+    db.session.commit()
+
+# delete favorite
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    user_id = request.arg.get('user_id')
+    favorite = Favorites.query.filter_by(user_id=user_id, planet_id=planet_id).first()
+    db.session.delete(favorite)
+    db.session.commit()
+
+# get all favorite 
+
+# get each favorite
 
 
 if __name__ == '__main__':
