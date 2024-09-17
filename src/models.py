@@ -18,6 +18,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "favorites": [favorite.serialize() for favorite in self.favorites]
         }
     
 class Favorites(db.Model):
@@ -26,6 +27,14 @@ class Favorites(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
     people_id = db.Column(db.Integer(), db.ForeignKey('people.id'))
     planet_id = db.Column(db.Integer(), db.ForeignKey('planet.id'))
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "person_id": self.people_id,
+            "planet_id": self.planet_id
+        }
     
 class People(db.Model):
     __tablename__ = 'people'
