@@ -51,6 +51,14 @@ def creat_user():
 
     return jsonify({'message': 'Added a new user to the database'}), 200
 
+#GET USER
+@app.route('/user/<int:user_id>', methods=['GET'])
+def get_single_user(user_id):
+    user = User.query.get(user_id)
+    if user:
+        return jsonify(user.serialize()), 200
+    return jsonify({'message': 'User not found'}), 404
+
 #GET ALL USERS
 @app.route('/users', methods=['GET'])
 def get_users():
@@ -113,6 +121,14 @@ def create_planet():
 
     return jsonify({'message': 'Added a new planet to the database'}), 200
 
+#GET PLANET
+@app.route('/planet/<int:planet_id>', methods=['GET'])
+def get_single_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet:
+        return jsonify(planet.serialize()), 200
+    return jsonify({'message': 'Planet not found'}), 404
+
 #GET ALL PLANETS
 @app.route('/planet', methods=['GET'])
 def get_planets():
@@ -129,34 +145,25 @@ def get_planets():
 
 
 #FAVORITES
-
 #CREATE FAVORITE PERSON
 @app.route('/favorite/person/<int:person_id>', methods=['POST'])
 def create_favorite_person(person_id):
     user_id = 1
     current_user = User.query.get(user_id)
-    if current_user:
-        person = People.query.get(person_id)
-        favorites = Favorites()
-        favorites.user = current_user
-        favorites.person = person
-        current_user.favorites.append(favorites)
-        db.session.commit()
-        return jsonify({'message': 'Successfully added person to favorites'})
-    
-    return jsonify({'message': 'Error adding person to favorites'})
-
-#DELETE FAVORITE PERSON
-@app.route('/favorite/person/<int:person_id>', methods=['DELETE'])
-def delete_favorite_person(person_id):
-    user_id = 1 #request.arg.get('user_id')
     person = People.query.get(person_id)
-    if person:
-        user = User.query.get(user_id)
-        user_favorite = user.favorites()
-    favorite = Favorites.query.filter_by(user_id=user_id, people_id = person_id).first()
-    db.session.delete(favorite)
+    if current_user is None:
+        return jsonify({"message":"User not found"}),404
+    if person is None:
+        return jsonify({"message":"Person not found"}),404
+    favorite_exists = Favorite.query.filter_by(people_id=person.id, user_id=current_user.id).first()
+    if favorite_exists:
+        return jsonify({"message":"That person is already a favorite"}),409
+    favorite = Favorites()
+    favorite.user = current_user
+    favorite.person = person
+    current_user.favorites.append(favorite)
     db.session.commit()
+    return jsonify({'message': 'Successfully added person to favorites'})
 
 #CREATE FAVORITE PLANET
 @app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
@@ -174,6 +181,29 @@ def create_favorite_planet(planet_id):
     
     return jsonify({'message': 'Error adding planet to favorites'})
 
+#DELETE FAVORITE PERSON
+@app.route('/favorite/person/<int:person_id>', methods=['DELETE'])
+def delete_favorite_person(person_id):
+    user_id = 1 #request.arg.get('user_id')
+    person = People.query.get(person_id)
+    if person:
+        user = User.query.get(user_id)
+        user_favorite = user.favorites()
+    favorite = Favorites.query.filter_by(user_id=user_id, people_id = person_id).first()
+    db.session.delete(favorite)
+    db.session.commit()
+
+#DELETE FAVORITE PLANET
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    user_id = 1 #request.arg.get('user_id')
+    planet = Planet.query.get(planet_id)
+    if planet:
+        user = User.query.get(user_id)
+        user_favorite = user.favorites()
+    favorite = Favorites.query.filter_by(user_id=user_id, planet_id = planet_id).first()
+    db.session.delete(favorite)
+    db.session.commit()
 
 #GET ALL FAVORITES FOR USER
 @app.route('/users/favorites/<int:user_id>', methods=['GET'])
